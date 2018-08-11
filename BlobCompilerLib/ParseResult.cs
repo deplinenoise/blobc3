@@ -57,8 +57,15 @@ namespace BlobCompiler
 
     public sealed class VoidType : TypeDef
     {
-        public override int SizeBytes => throw new System.NotImplementedException();
-        public override int AlignmentBytes => throw new System.NotImplementedException();
+        public override int SizeBytes
+        {
+          get { throw new System.NotImplementedException(); }
+        }
+
+        public override int AlignmentBytes
+        {
+          get { throw new System.NotImplementedException(); }
+        }
 
         internal override void Resolve(Dictionary<string, StructDef> allStructs)
         {
@@ -223,8 +230,15 @@ namespace BlobCompiler
 
     public sealed class FunctionType : TypeDef
     {
-        public override int SizeBytes => throw new TypeCheckException(Location, "function types do not have storage");
-        public override int AlignmentBytes => throw new TypeCheckException(Location, "function types do not have storage");
+        public override int SizeBytes
+        {
+          get { throw new TypeCheckException(Location, "function types do not have storage"); }
+        }
+
+        public override int AlignmentBytes
+        {
+          get { throw new TypeCheckException(Location, "function types do not have storage"); }
+        }
 
         public Location Location { get; private set; }
 
