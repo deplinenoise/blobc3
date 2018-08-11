@@ -1,0 +1,19 @@
+
+struct Foo {
+    u32 a;
+    u32[8] b;
+    i32*[8] c;
+    u8**[8] d;
+    Bar* e;
+    Bar** f;
+	void* some_ptr;
+	u32(i16 a, Bar* b) *function;
+}
+
+struct Bar {
+    f32 k;
+}
+
+struct Baz {
+	u32(i32 n, Foo* foo)*[18] arrayOfFunctions;
+}

@@ -1,0 +1,31 @@
+﻿namespace BlobCompiler
+{
+    public enum TokenType : ushort
+    {
+        LeftParen,
+        RightParen,
+        LeftBrace,
+        RightBrace,
+        Comma,
+        Colon,
+        SemiColon,
+        QuotedString,
+        Include,
+        Struct,
+        Identifier,
+        IntegerLiteral,
+        U8,
+        U16,
+        U32,
+        I8,
+        I16,
+        I32,
+        F32,
+        F64,
+        Void,
+        EndOfFile,
+        LeftBracket,
+        RightBracket,
+        Star,
+    }
+}
