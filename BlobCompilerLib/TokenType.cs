@@ -27,5 +27,10 @@
         LeftBracket,
         RightBracket,
         Star,
+        Plus,
+        Minus,
+        Slash,
+        LeftShift,
+        RightShift,
     }
 }

@@ -220,6 +220,21 @@ namespace BlobCompiler
                 case '*': tt = TokenType.Star; break;
                 case '[': tt = TokenType.LeftBracket; break;
                 case ']': tt = TokenType.RightBracket; break;
+                case '+': tt = TokenType.Plus; break;
+                case '-': tt = TokenType.Minus; break;
+                case '/': tt = TokenType.Slash; break;
+                case '<':
+                case '>':
+                    if (PeekChar() == c)
+                    {
+                        GetChar();
+                        tt = c == '<' ? TokenType.LeftShift : TokenType.RightShift;
+                    }
+                    else
+                    {
+                        throw MakeLexerException($"illegal character: '{c}'");
+                    }
+                    break;
                 default:
                     throw MakeLexerException($"illegal character: '{c}'");
             }

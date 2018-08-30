@@ -95,7 +95,7 @@ namespace BlobCompilerTests
         [Test]
         public void TestAllSimpleTokens()
         {
-            var lexer = new Lexer(new StringReader("(){},:;*[]"));
+            var lexer = new Lexer(new StringReader("(){},:;*[]<<>>+-/"));
             var expected = new TokenType[] {
                 TokenType.LeftParen,
                 TokenType.RightParen,
@@ -107,6 +107,11 @@ namespace BlobCompilerTests
                 TokenType.Star,
                 TokenType.LeftBracket,
                 TokenType.RightBracket,
+                TokenType.LeftShift,
+                TokenType.RightShift,
+                TokenType.Plus,
+                TokenType.Minus,
+                TokenType.Slash,
                 TokenType.EndOfFile
             };
             for (int i = 0; i < expected.Length; ++i)
@@ -115,6 +120,20 @@ namespace BlobCompilerTests
                 Assert.AreEqual(expected[i], token.Type);
                 Assert.AreEqual(1, token.Location.LineNumber);
             }
+        }
+
+        [Test]
+        public void TestNoLt()
+        {
+            var lexer = new Lexer(new StringReader("<foo"));
+            Assert.Throws<LexerException>(() => lexer.Next());
+        }
+
+        [Test]
+        public void TestNoGt()
+        {
+            var lexer = new Lexer(new StringReader(">foo"));
+            Assert.Throws<LexerException>(() => lexer.Next());
         }
 
         [Test]
