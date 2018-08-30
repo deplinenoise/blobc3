@@ -14,10 +14,5 @@ namespace BlobCompiler
             Filename = filename;
             LineNumber = lineNumber;
         }
-
-        public override string ToString()
-        {
-            return $"{Filename}({LineNumber}): {Message}";
-        }
     }
 }

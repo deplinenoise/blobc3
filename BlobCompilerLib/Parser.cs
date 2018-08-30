@@ -61,21 +61,21 @@ namespace BlobCompiler
                 }
                 else
                 {
-                    ThrowParseError($"unexpected {m_CurrentLexer.Peek().SummaryWithoutLocation()} at file scope");
+                    throw MakeParseError($"unexpected {m_CurrentLexer.Peek().SummaryWithoutLocation()} at file scope");
                 }
             }
 
             return result;
         }
 
-        private void ThrowParseError(string error)
+        private ParseException MakeParseError(string error)
         {
             throw new ParseException(m_CurrentLexer.Peek(), error);
         }
 
-        private void ThrowParseError(Token tok, string error)
+        private ParseException MakeParseError(Token tok, string error)
         {
-            throw new ParseException(tok, error);
+            return new ParseException(tok, error);
         }
 
         private void ParseStruct(ParseResult result)
@@ -136,14 +136,14 @@ namespace BlobCompiler
                 {
                     var bounds = Expect(TokenType.IntegerLiteral);
                     if (bounds.IntValue < 0)
-                        ThrowParseError(bounds, $"array bounds must be positive; got {bounds.IntValue}");
+                        throw MakeParseError(bounds, $"array bounds must be positive; got {bounds.IntValue}");
                     Expect(TokenType.RightBracket);
                     type = new ArrayType(t.Location, bounds.IntValue, type);
                 }
                 else if (Accept(TokenType.Star, out t))
                 {
                     if (type is ArrayType)
-                        ThrowParseError(t, "cannot declare pointer to array type");
+                        throw MakeParseError(t, "cannot declare pointer to array type");
 
                     type = new PointerType(t.Location, type);
                 }
@@ -197,8 +197,7 @@ namespace BlobCompiler
                 case TokenType.Void: return VoidType.Instance;
                 case TokenType.Identifier: return new StructType(token.Location, token.StringValue);
             }
-            ThrowParseError(token, $"expected type; got {token.Type}");
-            return null;
+            throw MakeParseError(token, $"expected type; got {token.Type}");
         }
 
         private void ParseInclude(ParseResult result)
@@ -218,7 +217,7 @@ namespace BlobCompiler
             catch (IOException ex)
             {
                 // TODO: Should keep nested exception
-                ThrowParseError(fn, ex.Message);
+                throw MakeParseError(fn, $"file not found: '{fn.StringValue}' - {ex.Message}");
             }
         }
 
@@ -227,7 +226,7 @@ namespace BlobCompiler
             var t = m_CurrentLexer.Next();
             if (t.Type != type)
             {
-                ThrowParseError(t, $"expected {type}, got {t.Type}");
+                throw MakeParseError(t, $"expected {type}, got {t.Type}");
             }
             return t;
         }

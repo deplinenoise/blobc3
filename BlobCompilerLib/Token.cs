@@ -19,7 +19,6 @@ namespace BlobCompiler
         public TokenType Type;
         public string StringValue;
         public long IntValue;
-        public double FloatValue;
         public Location Location;
 
         public Token(TokenType type, Location loc)
@@ -28,7 +27,6 @@ namespace BlobCompiler
             Location = loc;
             StringValue = null;
             IntValue = Int64.MinValue;
-            FloatValue = Double.NaN;
         }
 
         public Token(TokenType type, Location loc, string value)
@@ -37,7 +35,6 @@ namespace BlobCompiler
             Location = loc;
             StringValue = value;
             IntValue = Int64.MinValue;
-            FloatValue = Double.NaN;
         }
 
         public Token(TokenType type, Location loc, long value)
@@ -46,21 +43,11 @@ namespace BlobCompiler
             Location = loc;
             StringValue = null;
             IntValue = value;
-            FloatValue = Double.NaN;
-        }
-
-        public Token(TokenType type, Location loc, double value)
-        {
-            Type = type;
-            Location = loc;
-            StringValue = null;
-            IntValue = Int64.MinValue;
-            FloatValue = value;
         }
 
         public override string ToString()
         {
-            return $"Location=({Location}) Type={Type} Str=\"{(StringValue != null ? StringValue : "")}\" Int={IntValue} Float={FloatValue}";
+            return $"Location=({Location}) Type={Type} Str=\"{(StringValue != null ? StringValue : "")}\" Int={IntValue}";
         }
 
         public string SummaryWithoutLocation()
@@ -71,8 +58,6 @@ namespace BlobCompiler
                 buf.Append("(\"").Append(StringValue).Append("\")");
             else if (IntValue != Int64.MinValue)
                 buf.Append('(').Append(IntValue).Append(')');
-            else if (!double.IsNaN(FloatValue))
-                buf.Append('(').Append(FloatValue).Append(')');
             return buf.ToString();
         }
     }

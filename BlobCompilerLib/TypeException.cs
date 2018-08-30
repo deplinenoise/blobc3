@@ -2,7 +2,7 @@
 
 namespace BlobCompiler
 {
-    internal class TypeException : Exception
+    public class TypeException : Exception
     {
         public TypeDef TypeDef { get; private set; }
 

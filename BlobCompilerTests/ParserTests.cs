@@ -19,7 +19,7 @@ namespace BlobCompilerTests
             string data;
             if (!Files.TryGetValue(neutralTarget, out data))
             {
-                Assert.Fail($"file '{neutralTarget}' could not be found");
+                throw new IOException($"file '{neutralTarget}' could not be found");
             }
 
             return new Lexer(new StringReader(data), neutralTarget);
@@ -57,6 +57,55 @@ namespace BlobCompilerTests
             AddFile("foo", "");
             var result = Parse("foo");
             Assert.AreEqual(0, result.Structs.Count);
+            Assert.AreEqual("foo", result.InputFilename);
+        }
+
+        [Test]
+        public void BadFileScopeToken()
+        {
+            AddFile("foo", " blah ");
+            var ex = Assert.Throws<ParseException>(() => Parse("foo"));
+            Assert.IsTrue(ex.Message.Contains("at file scope"));
+        }
+
+        [Test]
+        public void BadBaseType()
+        {
+            AddFile("foo", "struct Foo { ; A");
+            var ex = Assert.Throws<ParseException>(() => Parse("foo"));
+            Assert.IsTrue(ex.Message.Contains("expected type"));
+        }
+
+        [Test]
+        public void MissingBraceThrows()
+        {
+            AddFile("foo", " struct Foo { u32 a; ");
+            var ex = Assert.Throws<ParseException>(() => Parse("foo"));
+            Assert.IsTrue(ex.Message.Contains("expected"));
+        }
+
+        [Test]
+        public void BadArrayBounds()
+        {
+            AddFile("foo", " struct Foo { u32[-123] a; }");
+            var ex = Assert.Throws<ParseException>(() => Parse("foo"));
+            Assert.IsTrue(ex.Message.Contains("must be positive"));
+        }
+
+        [Test]
+        public void MissingIncludeFile()
+        {
+            AddFile("foo", "include \"bar\"");
+            var ex = Assert.Throws<ParseException>(() => Parse("foo"));
+            Assert.IsTrue(ex.Message.Contains("file not found: 'bar'"));
+        }
+
+        [Test]
+        public void UnexpectedToken()
+        {
+            AddFile("foo", " struct ; { u32 a; }");
+            var ex = Assert.Throws<ParseException>(() => Parse("foo"));
+            Assert.IsTrue(ex.Message.Contains("expected Identifier"));
         }
 
         private void TestPrimitiveType(string id, PrimitiveType expectedType)
@@ -124,6 +173,27 @@ namespace BlobCompilerTests
             var st = sfoo.Fields[0].Type as StructType;
             Assert.AreEqual("Bar", st.Name);
             Assert.IsFalse(st.IsResolved);
+        }
+
+        [Test]
+        public void TestUnresolvedStructThrows()
+        {
+            AddFile("foo", "struct Foo { Bar A; }");
+
+            var result = Parse("foo");
+            Assert.AreEqual(1, result.Structs.Count);
+
+            var sfoo = result.Structs[0];
+            Assert.AreEqual(1, sfoo.Fields.Count);
+
+            Assert.AreEqual("A", sfoo.Fields[0].Name);
+
+            Assert.IsTrue(sfoo.Fields[0].Type is StructType);
+
+            var st = sfoo.Fields[0].Type as StructType;
+
+            Assert.Throws<TypeException>(() => { int dummy = st.SizeBytes; });
+            Assert.Throws<TypeException>(() => { int dummy = st.AlignmentBytes; });
         }
 
         [Test]
@@ -228,6 +298,8 @@ namespace BlobCompilerTests
 
             var p1 = sfoo.Fields[0].Type as ArrayType;
             Assert.IsTrue(p1 != null);
+            Assert.AreEqual("foo", p1.Location.Filename);
+            Assert.AreEqual(1, p1.Location.LineNumber);
             Assert.AreEqual(7, p1.Length);
             var elementType = p1.ElementType as StructType;
             Assert.IsTrue(elementType != null);
@@ -254,6 +326,17 @@ namespace BlobCompilerTests
             var elementType = p1.ElementType as PointerType;
             Assert.IsTrue(elementType != null);
             Assert.AreSame(PrimitiveType.U32, elementType.PointeeType);
+        }
+
+        [Test]
+        public void TestFunctionSizeBytesThrows()
+        {
+            AddFile("foo", "struct Foo { u32(u32 arg) A; }");
+
+            var result = Parse("foo");
+            var ft = result.Structs[0].Fields[0].Type as FunctionType;
+            Assert.IsNotNull(ft);
+            Assert.Throws<TypeCheckException>(() => { int size = ft.SizeBytes; });
         }
 
         [Test]

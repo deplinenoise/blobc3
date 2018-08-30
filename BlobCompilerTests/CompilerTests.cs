@@ -182,5 +182,14 @@ namespace BlobCompilerTests
             Assert.AreSame(VoidType.Instance, funcType.ReturnType);
             Assert.AreEqual(1, funcType.Arguments.Count);
         }
+
+        [Test]
+        public void UndefinedStructDoesNotTypecheck()
+        {
+            AddFile("a", "struct Foo { Bar a; }\n");
+            var result = Parse("a");
+            var ex = Assert.Throws<TypeException>(() => Compiler.ResolveTypes(result));
+            Assert.IsTrue(ex.Message.Contains("Bar"));
+        }
     }
 }

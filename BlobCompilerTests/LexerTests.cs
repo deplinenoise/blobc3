@@ -17,6 +17,16 @@ namespace BlobCompilerTests
         }
 
         [Test]
+        public void TestIllegalInput()
+        {
+            var lexer = new Lexer(new StringReader("?"), "somefile");
+            var ex = Assert.Throws<LexerException>(() => lexer.Next());
+            Assert.IsTrue(ex.Message.Contains("illegal character"));
+            Assert.AreEqual(1, ex.LineNumber);
+            Assert.AreEqual("somefile", ex.Filename);
+        }
+
+        [Test]
         public void TestLineNumbers()
         {
             var lexer = new Lexer(new StringReader("foo\nbar\n"), "filename");
@@ -171,5 +181,70 @@ namespace BlobCompilerTests
                 Assert.AreEqual(expected[i], token.Type);
             }
         }
+
+        [Test]
+        public void TestEndOfFileInString()
+        {
+            var lexer = new Lexer(new StringReader("\"foo"));
+            var ex = Assert.Throws<LexerException>(() => lexer.Next());
+            Assert.IsTrue(ex.Message.Contains("end of file inside quoted string"));
+        }
+
+        [Test]
+        public void TestEndOfFileInStringWithTrailingEscape()
+        {
+            var lexer = new Lexer(new StringReader("\"foo\\"));
+            var ex = Assert.Throws<LexerException>(() => lexer.Next());
+            Assert.IsTrue(ex.Message.Contains("end of file inside quoted string"));
+        }
+
+        [Test]
+        public void TestUnsupportedEscapeThrows()
+        {
+            var lexer = new Lexer(new StringReader("\"f\\oo\""));
+            var ex = Assert.Throws<LexerException>(() => lexer.Next());
+            Assert.IsTrue(ex.Message.Contains("unsupported escape"));
+        }
+
+        [Test]
+        public void TestNewlineInStringThrows()
+        {
+            var lexer = new Lexer(new StringReader("\"f\no\""));
+            var ex = Assert.Throws<LexerException>(() => lexer.Next());
+            Assert.IsTrue(ex.Message.Contains("newline"));
+        }
+
+        [Test]
+        public void TokenStringify()
+        {
+            var st = new Token(TokenType.Identifier, new Location { Filename = "bar", LineNumber = 123 }, "String");
+
+            Assert.AreEqual($"Location=(bar(123)) Type=Identifier Str=\"String\" Int={st.IntValue}", st.ToString());
+        }
+
+        [Test]
+        public void TokenStringify2()
+        {
+            var st = new Token(TokenType.Identifier, new Location { Filename = "bar", LineNumber = 123 }, 12345);
+
+            Assert.AreEqual($"Location=(bar(123)) Type=Identifier Str=\"\" Int={st.IntValue}", st.ToString());
+        }
+
+        [Test]
+        public void TokenStringify3()
+        {
+            var st = new Token(TokenType.Identifier, new Location { Filename = "bar", LineNumber = 123 }, "String");
+
+            Assert.AreEqual($"Identifier (\"String\")", st.SummaryWithoutLocation());
+        }
+
+        [Test]
+        public void TokenStringify4()
+        {
+            var st = new Token(TokenType.Identifier, new Location { Filename = "bar", LineNumber = 123 }, 123);
+
+            Assert.AreEqual($"Identifier (123)", st.SummaryWithoutLocation());
+        }
+
     }
 }

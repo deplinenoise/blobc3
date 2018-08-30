@@ -136,9 +136,9 @@ namespace BlobCompiler
             return num;
         }
 
-        private void ThrowLexerError(string errorText)
+        private LexerException MakeLexerException(string errorText)
         {
-            throw new LexerException(m_Filename, m_LineNumber, errorText);
+            return new LexerException(m_Filename, m_LineNumber, errorText);
         }
 
         private Token ReadQuotedString()
@@ -149,7 +149,7 @@ namespace BlobCompiler
             {
                 int ch = PeekChar();
                 if (-1 == ch)
-                    ThrowLexerError("end of file inside quoted string");
+                    throw MakeLexerException("end of file inside quoted string");
 
                 char c = (char)GetChar();
 
@@ -159,7 +159,7 @@ namespace BlobCompiler
                     {
                         int nch = PeekChar();
                         if (-1 == nch)
-                            ThrowLexerError("end of file inside quoted string");
+                            throw MakeLexerException("end of file inside quoted string");
 
                         char nc = (char)GetChar();
 
@@ -182,15 +182,13 @@ namespace BlobCompiler
                                 break;
 
                             default:
-                                ThrowLexerError($"unsupported escape: '{nc}'");
-                                break;
+                                throw MakeLexerException($"unsupported escape: '{nc}'");
                         }
                     }
                     break;
 
                     case '\n':
-                        ThrowLexerError("newline in quoted string");
-                        break;
+                        throw MakeLexerException("newline in quoted string");
 
                     case '"':
                         done = true;
@@ -223,8 +221,7 @@ namespace BlobCompiler
                 case '[': tt = TokenType.LeftBracket; break;
                 case ']': tt = TokenType.RightBracket; break;
                 default:
-                    ThrowLexerError($"illegal character: '{c}'");
-                    break;
+                    throw MakeLexerException($"illegal character: '{c}'");
             }
 
             return new Token(tt, CurrentLocation());
