@@ -422,27 +422,49 @@ namespace BlobCompilerTests
         {
             AddFile("foo", $"const foo = 123 {opString} 456;");
             var result = Parse("foo");
-            var c = result.Constants[0].Expression as BinaryExpression;
-            Assert.AreEqual(expectedType, c.ExpressionType);
-            var l = c.Left as LiteralExpression;
-            var r = c.Right as LiteralExpression;
-            Assert.AreEqual(123, l.Value);
-            Assert.AreEqual(456, r.Value);
+            var expected = new BinaryExpression { ExpressionType = expectedType, Left = new LiteralExpression { Value = 123 }, Right = new LiteralExpression { Value = 456 } };
+            Assert.AreEqual(expected, result.Constants[0].Expression);
         }
 
         [Test]
         public void BasicPrecedence()
         {
             AddFile("foo", $"const foo = 1 + 2 / 3;");
-            var result = Parse("foo");
-            var c = result.Constants[0].Expression as BinaryExpression;
-            Assert.AreEqual(BinaryExpressionType.Add, c.ExpressionType);
-            Assert.AreEqual(1, (c.Left as LiteralExpression).Value);
+            Assert.AreEqual(new BinaryExpression
+            {
+                ExpressionType = BinaryExpressionType.Add,
+                Left = new LiteralExpression { Value = 1 },
+                Right = new BinaryExpression
+                {
+                    ExpressionType = BinaryExpressionType.Div,
+                    Left = new LiteralExpression { Value = 2 },
+                    Right = new LiteralExpression { Value = 3 },
+                }
+            }, Parse("foo").Constants[0].Expression);
+        }
 
-            var e2 = c.Right as BinaryExpression;
-            Assert.AreEqual(BinaryExpressionType.Div, e2.ExpressionType);
-            Assert.AreEqual(2, (e2.Left as LiteralExpression).Value);
-            Assert.AreEqual(3, (e2.Right as LiteralExpression).Value);
+        [Test]
+        public void BasicPrecedence2()
+        {
+            AddFile("foo", $"const foo = 1 / 2 + 3;");
+            Assert.AreEqual(new BinaryExpression
+            {
+                ExpressionType = BinaryExpressionType.Add,
+                Left = new BinaryExpression
+                {
+                    ExpressionType = BinaryExpressionType.Div,
+                    Left = new LiteralExpression { Value = 1 },
+                    Right = new LiteralExpression { Value = 2 },
+                },
+                Right = new LiteralExpression { Value = 3 },
+            }, Parse("foo").Constants[0].Expression);
+        }
+
+        [Test]
+        public void IdExpression()
+        {
+            AddFile("foo", $"const foo = x;");
+            Assert.AreEqual(new IdentifierExpression { Name = "x" }, Parse("foo").Constants[0].Expression);
         }
     }
 }

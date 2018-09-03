@@ -51,6 +51,9 @@ namespace BlobCompiler
     public abstract class Expression
     {
         public Location Location;
+
+        public override abstract bool Equals(object other);
+        public override abstract int GetHashCode();
     }
 
     public enum UnaryExpressionType
@@ -74,22 +77,94 @@ namespace BlobCompiler
         public BinaryExpressionType ExpressionType;
         public Expression Left;
         public Expression Right;
+
+        public override int GetHashCode()
+        {
+            return ExpressionType.GetHashCode() + Left.GetHashCode() * 4711 + Right.GetHashCode() * 1913;
+        }
+
+        public override bool Equals(object obj)
+        {
+            BinaryExpression other = obj as BinaryExpression;
+            if (other == null)
+                return false;
+            return ExpressionType == other.ExpressionType && Left.Equals(other.Left) && Right.Equals(other.Right);
+        }
+
+        public override string ToString()
+        {
+            return $"({ExpressionType} {Left} {Right})";
+        }
     }
 
     public class UnaryExpression : Expression
     {
         public UnaryExpressionType ExpressionType;
         public Expression Expression;
+
+        public override int GetHashCode()
+        {
+            return ExpressionType.GetHashCode() + Expression.GetHashCode() * 4711;
+        }
+
+        public override bool Equals(object obj)
+        {
+            UnaryExpression other = obj as UnaryExpression;
+            if (other == null)
+                return false;
+            return ExpressionType == other.ExpressionType && Expression.Equals(other.Expression);
+        }
+
+        public override string ToString()
+        {
+            return $"({ExpressionType} {Expression})";
+        }
     }
 
     public class LiteralExpression : Expression
     {
         public long Value;
+
+        public override int GetHashCode()
+        {
+            return Value.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            LiteralExpression other = obj as LiteralExpression;
+            if (other == null)
+                return false;
+            return Value == other.Value;
+        }
+
+        public override string ToString()
+        {
+            return $"{Value}";
+        }
     }
 
     public class IdentifierExpression : Expression
     {
         public string Name;
+
+        public override int GetHashCode()
+        {
+            return Name.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            IdentifierExpression other = obj as IdentifierExpression;
+            if (other == null)
+                return false;
+            return Name == other.Name;
+        }
+
+        public override string ToString()
+        {
+            return $"{Name}";
+        }
     }
 
     public class FieldDef
