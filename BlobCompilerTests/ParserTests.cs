@@ -415,30 +415,10 @@ namespace BlobCompilerTests
         }
 
         [Test]
-        public void TestAdd()
-        {
-            SingleExpressionTest("+", BinaryExpressionType.Add);
-        }
-
-        [Test]
-        public void TestSub()
-        {
-            SingleExpressionTest("-", BinaryExpressionType.Sub);
-        }
-
-        [Test]
-        public void TestMul()
-        {
-            SingleExpressionTest("*", BinaryExpressionType.Mul);
-        }
-
-        [Test]
-        public void TestDiv()
-        {
-            SingleExpressionTest("/", BinaryExpressionType.Div);
-        }
-
-        private void SingleExpressionTest(string opString, BinaryExpressionType expectedType)
+        [Sequential]
+        public void SingleExpressionTest(
+            [Values("+", "-", "*", "/")] string opString,
+            [Values(BinaryExpressionType.Add, BinaryExpressionType.Sub, BinaryExpressionType.Mul, BinaryExpressionType.Div)] BinaryExpressionType expectedType)
         {
             AddFile("foo", $"const foo = 123 {opString} 456;");
             var result = Parse("foo");
@@ -448,6 +428,21 @@ namespace BlobCompilerTests
             var r = c.Right as LiteralExpression;
             Assert.AreEqual(123, l.Value);
             Assert.AreEqual(456, r.Value);
+        }
+
+        [Test]
+        public void BasicPrecedence()
+        {
+            AddFile("foo", $"const foo = 1 + 2 / 3;");
+            var result = Parse("foo");
+            var c = result.Constants[0].Expression as BinaryExpression;
+            Assert.AreEqual(BinaryExpressionType.Add, c.ExpressionType);
+            Assert.AreEqual(1, (c.Left as LiteralExpression).Value);
+
+            var e2 = c.Right as BinaryExpression;
+            Assert.AreEqual(BinaryExpressionType.Div, e2.ExpressionType);
+            Assert.AreEqual(2, (e2.Left as LiteralExpression).Value);
+            Assert.AreEqual(3, (e2.Right as LiteralExpression).Value);
         }
     }
 }
