@@ -20,7 +20,7 @@ namespace BlobCompilerTests
         protected List<string> ParseAndGenerate(string fn)
         {
             var result = Parse(fn);
-            Compiler.ResolveTypes(result);
+            Compiler.Resolve(result);
             var generator = new AsmCodeGenerator();
             using (var writer = new StringWriter())
             {

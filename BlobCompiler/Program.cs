@@ -138,7 +138,7 @@ namespace BlobCompilerMain
 
                 var parseResult = parser.Parse(options.InputFile);
 
-                Compiler.ResolveTypes(parseResult);
+                Compiler.Resolve(parseResult);
 
                 using (var writer = new StringWriter())
                 {

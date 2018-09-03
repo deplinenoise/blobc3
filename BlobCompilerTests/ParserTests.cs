@@ -466,5 +466,12 @@ namespace BlobCompilerTests
             AddFile("foo", $"const foo = x;");
             Assert.AreEqual(new IdentifierExpression { Name = "x" }, Parse("foo").Constants[0].Expression);
         }
+
+        [Test]
+        public void NegativeValue()
+        {
+            AddFile("foo", $"const foo = -12;");
+            Assert.AreEqual(new LiteralExpression { Value = -12 }, Parse("foo").Constants[0].Expression);
+        }
     }
 }

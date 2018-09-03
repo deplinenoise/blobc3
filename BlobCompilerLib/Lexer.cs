@@ -224,6 +224,7 @@ namespace BlobCompiler
                 case '-': tt = TokenType.Minus; break;
                 case '/': tt = TokenType.Slash; break;
                 case '=': tt = TokenType.Equal; break;
+                case '~': tt = TokenType.BitwiseNegate; break;
                 case '<':
                 case '>':
                     if (PeekChar() == c)

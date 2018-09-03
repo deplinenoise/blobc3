@@ -76,11 +76,11 @@ namespace BlobCompiler
         {
             switch (t.Type)
             {
-                case TokenType.Plus: expressionType = BinaryExpressionType.Add; return 1; 
-                case TokenType.Minus: expressionType = BinaryExpressionType.Sub; return 1; 
-                case TokenType.LeftShift: expressionType = BinaryExpressionType.LeftShift; return 2; 
-                case TokenType.RightShift: expressionType = BinaryExpressionType.RightShift; return 2; 
-                case TokenType.Star: expressionType = BinaryExpressionType.Mul; return 3; 
+                case TokenType.LeftShift: expressionType = BinaryExpressionType.LeftShift; return 1;
+                case TokenType.RightShift: expressionType = BinaryExpressionType.RightShift; return 1;
+                case TokenType.Plus: expressionType = BinaryExpressionType.Add; return 2;
+                case TokenType.Minus: expressionType = BinaryExpressionType.Sub; return 2;
+                case TokenType.Star: expressionType = BinaryExpressionType.Mul; return 3;
                 case TokenType.Slash: expressionType = BinaryExpressionType.Div; return 3;
             }
 
@@ -144,6 +144,14 @@ namespace BlobCompiler
                 var expr = ParseExpression(1);
                 Expect(TokenType.RightParen);
                 return expr;
+            }
+            else if (Accept(TokenType.BitwiseNegate))
+            {
+                return new UnaryExpression { Location = tok.Location, Expression = ParseAtom(), ExpressionType = UnaryExpressionType.BitwiseNegate };
+            }
+            else if (Accept(TokenType.Minus))
+            {
+                return new UnaryExpression { Location = tok.Location, Expression = ParseAtom(), ExpressionType = UnaryExpressionType.Negate };
             }
             else
             {
@@ -294,7 +302,12 @@ namespace BlobCompiler
                 {
                     def.WasIncluded = true;
                 }
+                foreach (ConstDef def in nestedResult.Constants)
+                {
+                    def.WasIncluded = true;
+                }
                 result.Structs.AddRange(nestedResult.Structs);
+                result.Constants.AddRange(nestedResult.Constants);
                 result.Includes.Add(fn.StringValue);
             }
             catch (IOException ex)

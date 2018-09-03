@@ -33,6 +33,7 @@
         Slash,
         LeftShift,
         RightShift,
+        BitwiseNegate,
         Equal,
     }
 }

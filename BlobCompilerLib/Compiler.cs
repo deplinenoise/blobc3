@@ -23,7 +23,37 @@ namespace BlobCompiler
             }
         }
 
-        public static void ResolveTypes(ParseResult result)
+        public static void Resolve(ParseResult result)
+        {
+            ResolveStructs(result);
+            ResolveConstants(result);
+        }
+
+        private static void ResolveConstants(ParseResult result)
+        {
+            var lookup = new Dictionary<string, Expression>();
+
+            foreach (var constant in result.Constants)
+            {
+                if (lookup.ContainsKey(constant.Name))
+                {
+                  throw new TypeCheckException(constant.Location, $"constant '{constant.Name}' already defined");
+                }
+                lookup.Add(constant.Name, constant.Expression);
+            }
+
+            var stack = new HashSet<Expression>();
+            foreach (var constant in result.Constants)
+            {
+                result.ResolvedConstants.Add(new ResolvedConstant
+                {
+                    Definition = constant,
+                    Value = constant.Expression.Eval(lookup, stack),
+                });
+            }
+        }
+
+        private static void ResolveStructs(ParseResult result)
         {
             Dictionary<string, StructDef> allStructs = new Dictionary<string, StructDef>();
 

@@ -2,6 +2,12 @@
 
 namespace BlobCompiler
 {
+    public struct ResolvedConstant
+    {
+        public ConstDef Definition;
+        public long Value;
+    }
+
     public class ParseResult
     {
         public string InputFilename { get; private set; }
@@ -9,6 +15,7 @@ namespace BlobCompiler
         public List<StructDef> Structs { get; private set; }
         public List<ConstDef> Constants { get; private set; }
         public List<FunctionType> FunctionTypes { get; private set; }
+        public List<ResolvedConstant> ResolvedConstants { get; private set; }
 
         public ParseResult(string inputFilename)
         {
@@ -17,6 +24,7 @@ namespace BlobCompiler
             Structs = new List<StructDef>();
             FunctionTypes = new List<FunctionType>();
             Constants = new List<ConstDef>();
+            ResolvedConstants = new List<ResolvedConstant>();
         }
     }
 
@@ -46,6 +54,7 @@ namespace BlobCompiler
         public Location Location;
         public string Name;
         public Expression Expression;
+        public bool WasIncluded;
     }
 
     public abstract class Expression
@@ -54,6 +63,22 @@ namespace BlobCompiler
 
         public override abstract bool Equals(object other);
         public override abstract int GetHashCode();
+
+        internal long Eval(Dictionary<string, Expression> lookup, HashSet<Expression> stack)
+        {
+            if (stack.Contains(this))
+                throw new TypeCheckException(Location, $"recursive constant expression");
+
+            stack.Add(this);
+
+            long result = InternalEval(lookup, stack);
+
+            stack.Remove(this);
+
+            return result;
+        }
+
+        protected abstract long InternalEval(Dictionary<string, Expression> lookup, HashSet<Expression> stack);
     }
 
     public enum UnaryExpressionType
@@ -95,6 +120,39 @@ namespace BlobCompiler
         {
             return $"({ExpressionType} {Left} {Right})";
         }
+
+        protected override long InternalEval(Dictionary<string, Expression> lookup, HashSet<Expression> stack)
+        {
+            long lv = Left.Eval(lookup, stack);
+            long rv = Right.Eval(lookup, stack);
+
+            switch (ExpressionType)
+            {
+                case BinaryExpressionType.Add: return lv + rv;
+                case BinaryExpressionType.Sub: return lv - rv;
+                case BinaryExpressionType.Mul: return lv * rv;
+                case BinaryExpressionType.Div:
+                                           if (rv == 0)
+                                               throw new TypeCheckException(Location, $"division by zero");
+                                           return lv / rv;
+                case BinaryExpressionType.LeftShift:
+                                           CheckShiftQuantity(rv);
+                                           return lv << (int) rv;
+                case BinaryExpressionType.RightShift:
+                                           CheckShiftQuantity(rv);
+                                           return lv >> (int) rv;
+                default:
+                    throw new TypeCheckException(Location, $"unknown operator - internal compiler error");
+            }
+        }
+
+        private void CheckShiftQuantity(long q)
+        {
+            if (q < 0)
+                throw new TypeCheckException(Location, $"shift amount cannot be negative");
+            if (q > 63)
+                throw new TypeCheckException(Location, $"shift amount cannot be greater than 63");
+        }
     }
 
     public class UnaryExpression : Expression
@@ -119,6 +177,19 @@ namespace BlobCompiler
         {
             return $"({ExpressionType} {Expression})";
         }
+
+        protected override long InternalEval(Dictionary<string, Expression> lookup, HashSet<Expression> stack)
+        {
+            long v = Expression.Eval(lookup, stack);
+
+            switch (ExpressionType)
+            {
+                case UnaryExpressionType.Negate: return -v;
+                case UnaryExpressionType.BitwiseNegate: return ~v;
+                default:
+                    throw new TypeCheckException(Location, $"unknown operator - internal compiler error");
+            }
+        }
     }
 
     public class LiteralExpression : Expression
@@ -142,6 +213,11 @@ namespace BlobCompiler
         {
             return $"{Value}";
         }
+
+        protected override long InternalEval(Dictionary<string, Expression> lookup, HashSet<Expression> stack)
+        {
+            return Value;
+        }
     }
 
     public class IdentifierExpression : Expression
@@ -164,6 +240,16 @@ namespace BlobCompiler
         public override string ToString()
         {
             return $"{Name}";
+        }
+
+        protected override long InternalEval(Dictionary<string, Expression> lookup, HashSet<Expression> stack)
+        {
+            Expression e;
+            if (!lookup.TryGetValue(Name, out e))
+            {
+                throw new TypeCheckException(Location, $"undefined constant '{Name}'");
+            }
+            return e.Eval(lookup, stack);
         }
     }
 
