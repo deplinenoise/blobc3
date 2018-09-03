@@ -223,6 +223,7 @@ namespace BlobCompiler
                 case '+': tt = TokenType.Plus; break;
                 case '-': tt = TokenType.Minus; break;
                 case '/': tt = TokenType.Slash; break;
+                case '=': tt = TokenType.Equal; break;
                 case '<':
                 case '>':
                     if (PeekChar() == c)
@@ -270,6 +271,7 @@ namespace BlobCompiler
             {
                 case "struct":      t = TokenType.Struct; break;
                 case "include":     t = TokenType.Include; break;
+                case "const":       t = TokenType.Constant; break;
                 case "u8":          t = TokenType.U8; break;
                 case "u16":         t = TokenType.U16; break;
                 case "u32":         t = TokenType.U32; break;

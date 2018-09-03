@@ -55,6 +55,10 @@ namespace BlobCompiler
                 {
                     ParseStruct(result);
                 }
+                else if (Accept(TokenType.Constant))
+                {
+                    ParseConstant(result);
+                }
                 else if (Accept(TokenType.Include))
                 {
                     ParseInclude(result);
@@ -66,6 +70,85 @@ namespace BlobCompiler
             }
 
             return result;
+        }
+
+        private static int Priority(Token t, out BinaryExpressionType expressionType)
+        {
+            switch (t.Type)
+            {
+                case TokenType.Plus: expressionType = BinaryExpressionType.Add; return 1; 
+                case TokenType.Minus: expressionType = BinaryExpressionType.Sub; return 1; 
+                case TokenType.LeftShift: expressionType = BinaryExpressionType.LeftShift; return 2; 
+                case TokenType.RightShift: expressionType = BinaryExpressionType.RightShift; return 2; 
+                case TokenType.Star: expressionType = BinaryExpressionType.Mul; return 3; 
+                case TokenType.Slash: expressionType = BinaryExpressionType.Div; return 3;
+            }
+
+            // Dummy
+            expressionType = BinaryExpressionType.Add;
+            return 0;
+        }
+
+        private static bool IsRightAssociative(BinaryExpressionType et)
+        {
+            return false;
+        }
+
+        private void ParseConstant(ParseResult result)
+        {
+            var idToken = Expect(TokenType.Identifier);
+            Expect(TokenType.Equal);
+            var expr = ParseExpression(1);
+            Accept(TokenType.SemiColon);
+
+            result.Constants.Add(new ConstDef { Name = idToken.StringValue, Expression = expr, Location = idToken.Location });
+        }
+
+        private Expression ParseExpression(int precedence)
+        {
+            Expression p = ParseAtom();
+
+            BinaryExpressionType et;
+
+            for (; ; )
+            {
+                int pri = Priority(m_CurrentLexer.Peek(), out et);
+
+                if (pri < precedence)
+                    break;
+
+                var token = m_CurrentLexer.Next();
+
+                int nextPri = IsRightAssociative(et) ? pri : pri + 1;
+
+                p = new BinaryExpression { ExpressionType = et, Left = p, Right = ParseExpression(nextPri) };
+            }
+
+            return p;
+        }
+
+        private Expression ParseAtom()
+        {
+            Token tok;
+
+            if (Accept(TokenType.IntegerLiteral, out tok))
+            {
+                return new LiteralExpression { Location = tok.Location, Value = tok.IntValue };
+            }
+            else if (Accept(TokenType.Identifier, out tok))
+            {
+                return new IdentifierExpression { Location = tok.Location, Name = tok.StringValue };
+            }
+            else if (Accept(TokenType.LeftParen))
+            {
+                var expr = ParseExpression(1);
+                Expect(TokenType.RightParen);
+                return expr;
+            }
+            else
+            {
+                throw MakeParseError("expected atom");
+            }
         }
 
         private ParseException MakeParseError(string error)

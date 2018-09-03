@@ -403,5 +403,51 @@ namespace BlobCompilerTests
             Assert.IsTrue(ft.Arguments[2].Type is PointerType);
             Assert.AreEqual("Bar", ((StructType)((PointerType)ft.Arguments[2].Type).PointeeType).Name);
         }
+
+        [Test]
+        public void TestLiteralConstant()
+        {
+            AddFile("foo", "const foo = 123;");
+
+            var result = Parse("foo");
+            Assert.AreEqual("foo", result.Constants[0].Name);
+            Assert.AreEqual(123, ((LiteralExpression)result.Constants[0].Expression).Value);
+        }
+
+        [Test]
+        public void TestAdd()
+        {
+            SingleExpressionTest("+", BinaryExpressionType.Add);
+        }
+
+        [Test]
+        public void TestSub()
+        {
+            SingleExpressionTest("-", BinaryExpressionType.Sub);
+        }
+
+        [Test]
+        public void TestMul()
+        {
+            SingleExpressionTest("*", BinaryExpressionType.Mul);
+        }
+
+        [Test]
+        public void TestDiv()
+        {
+            SingleExpressionTest("/", BinaryExpressionType.Div);
+        }
+
+        private void SingleExpressionTest(string opString, BinaryExpressionType expectedType)
+        {
+            AddFile("foo", $"const foo = 123 {opString} 456;");
+            var result = Parse("foo");
+            var c = result.Constants[0].Expression as BinaryExpression;
+            Assert.AreEqual(expectedType, c.ExpressionType);
+            var l = c.Left as LiteralExpression;
+            var r = c.Right as LiteralExpression;
+            Assert.AreEqual(123, l.Value);
+            Assert.AreEqual(456, r.Value);
+        }
     }
 }

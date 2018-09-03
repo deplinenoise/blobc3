@@ -7,6 +7,7 @@ namespace BlobCompiler
         public string InputFilename { get; private set; }
         public List<string> Includes { get; private set; }
         public List<StructDef> Structs { get; private set; }
+        public List<ConstDef> Constants { get; private set; }
         public List<FunctionType> FunctionTypes { get; private set; }
 
         public ParseResult(string inputFilename)
@@ -15,6 +16,7 @@ namespace BlobCompiler
             Includes = new List<string>();
             Structs = new List<StructDef>();
             FunctionTypes = new List<FunctionType>();
+            Constants = new List<ConstDef>();
         }
     }
 
@@ -37,6 +39,57 @@ namespace BlobCompiler
         {
             return ReferenceEquals(this, obj);
         }
+    }
+
+    public class ConstDef
+    {
+        public Location Location;
+        public string Name;
+        public Expression Expression;
+    }
+
+    public abstract class Expression
+    {
+        public Location Location;
+    }
+
+    public enum UnaryExpressionType
+    {
+        Negate,
+        BitwiseNegate
+    }
+
+    public enum BinaryExpressionType
+    {
+        Add,
+        Sub,
+        Mul,
+        Div,
+        LeftShift,
+        RightShift,
+    }
+
+    public class BinaryExpression : Expression
+    {
+        public BinaryExpressionType ExpressionType;
+        public Expression Left;
+        public Expression Right;
+    }
+
+    public class UnaryExpression : Expression
+    {
+        public UnaryExpressionType ExpressionType;
+        public Expression Expression;
+    }
+
+    public class LiteralExpression : Expression
+    {
+        public long Value;
+    }
+
+    public class IdentifierExpression : Expression
+    {
+        public string Name;
     }
 
     public class FieldDef

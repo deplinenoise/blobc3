@@ -13,6 +13,7 @@
         Include,
         Struct,
         Identifier,
+        Constant,
         IntegerLiteral,
         U8,
         U16,
@@ -32,5 +33,6 @@
         Slash,
         LeftShift,
         RightShift,
+        Equal,
     }
 }

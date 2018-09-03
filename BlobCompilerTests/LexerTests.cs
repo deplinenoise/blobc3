@@ -95,7 +95,7 @@ namespace BlobCompilerTests
         [Test]
         public void TestAllSimpleTokens()
         {
-            var lexer = new Lexer(new StringReader("(){},:;*[]<<>>+-/"));
+            var lexer = new Lexer(new StringReader("(){},:;*[]<<>>+-/="));
             var expected = new TokenType[] {
                 TokenType.LeftParen,
                 TokenType.RightParen,
@@ -112,6 +112,7 @@ namespace BlobCompilerTests
                 TokenType.Plus,
                 TokenType.Minus,
                 TokenType.Slash,
+                TokenType.Equal,
                 TokenType.EndOfFile
             };
             for (int i = 0; i < expected.Length; ++i)
@@ -179,10 +180,11 @@ namespace BlobCompilerTests
         [Test]
         public void TestKeywords()
         {
-            var lexer = new Lexer(new StringReader("include struct u8 u16 u32 i8 i16 i32 f32 f64 void"));
+            var lexer = new Lexer(new StringReader("include struct const u8 u16 u32 i8 i16 i32 f32 f64 void"));
             var expected = new TokenType[] {
                 TokenType.Include,
                 TokenType.Struct,
+                TokenType.Constant,
                 TokenType.U8,
                 TokenType.U16,
                 TokenType.U32,
