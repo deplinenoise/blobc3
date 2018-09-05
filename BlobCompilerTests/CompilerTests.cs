@@ -262,6 +262,15 @@ namespace BlobCompilerTests
         }
 
         [Test]
+        public void IllegalShifts2([Values("<<", ">>")] string op)
+        {
+            AddFile("a", $"const a = -1 {op} 2;");
+            var result = Parse("a");
+            var ex = Assert.Throws<TypeCheckException>(() => Compiler.Resolve(result));
+            Assert.IsTrue(ex.Message.Contains("shift"));
+        }
+
+        [Test]
         [Sequential]
         public void CompositeExpressions(
                 [Values("12 * (2 + 3)", "9 << 2", "12 / 2 + 9 * 7 << 1", "-7 * -9", "~12", "-(12)")]

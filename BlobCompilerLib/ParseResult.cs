@@ -136,14 +136,22 @@ namespace BlobCompiler
                                                throw new TypeCheckException(Location, $"division by zero");
                                            return lv / rv;
                 case BinaryExpressionType.LeftShift:
+                                           CheckShiftOperand(lv);
                                            CheckShiftQuantity(rv);
                                            return lv << (int) rv;
                 case BinaryExpressionType.RightShift:
+                                           CheckShiftOperand(lv);
                                            CheckShiftQuantity(rv);
                                            return lv >> (int) rv;
                 default:
                     throw new TypeCheckException(Location, $"unknown operator - internal compiler error");
             }
+        }
+
+        private void CheckShiftOperand(long q)
+        {
+            if (q < 0)
+                throw new TypeCheckException(Location, $"shifted value cannot be negative");
         }
 
         private void CheckShiftQuantity(long q)
