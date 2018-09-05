@@ -4,3 +4,4 @@ packages
 *.suo
 .vs
 /TestResults
+TestResult.xml
