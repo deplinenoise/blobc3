@@ -21,6 +21,14 @@ namespace BlobCompiler
 
             writer.WriteLine();
 
+            foreach (var constant in result.ResolvedConstants)
+            {
+                if (constant.Definition.WasIncluded)
+                    continue;
+
+                writer.WriteLine("{0}\t\tEQU {1}", constant.Definition.Name, constant.Value);
+            }
+
             foreach (var structDef in result.Structs)
             {
                 if (structDef.WasIncluded)

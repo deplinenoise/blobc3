@@ -99,5 +99,16 @@ namespace BlobCompilerTests
             Assert.Contains("Foo_Baz EQU 2", lines);
             Assert.AreEqual(0, lines.Count((e) => e.StartsWith("Bar_")));
         }
+
+        [Test]
+        public void Constants()
+        {
+            AddFile("a", "include \"b\"\nconst c1 = 9; const c2 = 9 + c3;");
+            AddFile("b", "const c3 = 12;");
+            var lines = ParseAndGenerate("a");
+            Assert.Contains("c1 EQU 9", lines);
+            Assert.Contains("c2 EQU 21", lines);
+            Assert.AreEqual(0, lines.Count((e) => e.StartsWith("c3")));
+        }
     }
 }
