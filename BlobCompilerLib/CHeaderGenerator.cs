@@ -58,6 +58,15 @@ namespace BlobCompiler
 
             writer.WriteLine();
 
+            // Generate constants as defines
+            foreach (var constant in m_Result.ResolvedConstants)
+            {
+                if (constant.Definition.WasIncluded)
+                    continue;
+
+                writer.WriteLine("#define {0} {1}", constant.Definition.Name, constant.Value);
+            }
+
             // Generate struct predeclarations and typedefs
             foreach (var structDef in m_Result.Structs)
             {
