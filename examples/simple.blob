@@ -1,4 +1,7 @@
 
+const FOO_BAR = 12;
+const FOO_BAZ = FOO_BAR / 4;
+
 struct Foo {
     u32 a;
     u32[8] b;
