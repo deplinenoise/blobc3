@@ -193,9 +193,7 @@ namespace BlobCompiler
 
         private void EmitPrimitiveType(PrimitiveType fieldDefType, TextWriter writer)
         {
-            string label;
-            if (!m_PrimitiveMappings.TryGetValue(fieldDefType, out label))
-                throw new ApplicationException("unregistered primitive type - program bug");
+            string label = m_PrimitiveMappings[fieldDefType];
             writer.Write(label);
         }
 

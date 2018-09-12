@@ -108,6 +108,14 @@ namespace BlobCompilerTests
             Assert.IsTrue(ex.Message.Contains("expected Identifier"));
         }
 
+        [Test]
+        public void UnexpectedToplevel()
+        {
+            AddFile("foo", "foo bar");
+            var ex = Assert.Throws<ParseException>(() => Parse("foo"));
+            Assert.IsTrue(ex.Message.Contains("file scope"));
+        }
+
         private void TestPrimitiveType(string id, PrimitiveType expectedType)
         {
             AddFile("foo", $"struct Foo {{ {id} Bar; }}");
@@ -472,6 +480,20 @@ namespace BlobCompilerTests
         {
             AddFile("foo", $"const foo = -12;");
             Assert.AreEqual(new LiteralExpression { Value = -12 }, Parse("foo").Constants[0].Expression);
+        }
+
+        [Test]
+        public void BadExpression()
+        {
+            AddFile("foo", $"const foo = 12 + /;");
+            Assert.Throws<ParseException>(() => Parse("foo"));
+        }
+
+        [Test]
+        public void BadExpression2()
+        {
+            AddFile("foo", $"const foo = /;");
+            Assert.Throws<ParseException>(() => Parse("foo"));
         }
     }
 }

@@ -89,10 +89,11 @@ namespace BlobCompiler
             return 0;
         }
 
+        /*
         private static bool IsRightAssociative(BinaryExpressionType et)
         {
             return false;
-        }
+        }*/
 
         private void ParseConstant(ParseResult result)
         {
@@ -119,7 +120,8 @@ namespace BlobCompiler
 
                 var token = m_CurrentLexer.Next();
 
-                int nextPri = IsRightAssociative(et) ? pri : pri + 1;
+                //int nextPri = IsRightAssociative(et) ? pri : pri + 1;
+                int nextPri =  pri + 1;
 
                 p = new BinaryExpression { ExpressionType = et, Left = p, Right = ParseExpression(nextPri) };
             }
@@ -161,7 +163,7 @@ namespace BlobCompiler
 
         private ParseException MakeParseError(string error)
         {
-            throw new ParseException(m_CurrentLexer.Peek(), error);
+            return new ParseException(m_CurrentLexer.Peek(), error);
         }
 
         private ParseException MakeParseError(Token tok, string error)

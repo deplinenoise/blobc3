@@ -283,5 +283,23 @@ namespace BlobCompilerTests
             Compiler.Resolve(result);
             Assert.AreEqual(expected, result.ResolvedConstants[0].Value);
         }
+
+        [Test]
+        public void RecursiveConstantsThrow()
+        {
+            AddFile("a", $"const a = b; const b = a;");
+            var result = Parse("a");
+            var ex = Assert.Throws<TypeCheckException>(() => Compiler.Resolve(result));
+            Assert.IsTrue(ex.Message.Contains("recursive"));
+        }
+
+        [Test]
+        public void DuplicateConstantsThrow()
+        {
+            AddFile("a", $"const a = 1; const a = 1;");
+            var result = Parse("a");
+            var ex = Assert.Throws<TypeCheckException>(() => Compiler.Resolve(result));
+            Assert.IsTrue(ex.Message.Contains("already defined"));
+        }
     }
 }
