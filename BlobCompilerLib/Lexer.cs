@@ -99,6 +99,7 @@ namespace BlobCompiler
 
             char c = (char) ch;
 
+
             if (char.IsDigit(c))
             {
                 UnGetChar(ch);
@@ -323,6 +324,21 @@ namespace BlobCompiler
                 if (ch == -1)
                     break;
 
+                if (ch == '/' && PeekChar() == '/')
+                {
+                    // Skip line comments
+                    for (;;)
+                    {
+                        int ch2 = PeekChar();
+                        if ((char)ch2 == '\n')
+                            break;
+                        if ((char)ch2 == -1)
+                            break;
+                        GetChar();
+                    }
+                    continue;
+                }
+
                 if (!Char.IsWhiteSpace((char)ch))
                 {
                     UnGetChar(ch);
@@ -331,6 +347,7 @@ namespace BlobCompiler
 
                 if (ch == '\n')
                     ++m_LineNumber;
+
             }
         }
 

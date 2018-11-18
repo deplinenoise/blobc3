@@ -236,6 +236,17 @@ namespace BlobCompilerTests
         }
 
         [Test]
+        public void TestComments()
+        {
+            var lexer = new Lexer(new StringReader("//foo\nbar"));
+            var t = lexer.Next();
+            Assert.AreEqual(TokenType.Identifier, t.Type);
+            Assert.AreEqual("bar", t.StringValue);
+            t = lexer.Next();
+            Assert.AreEqual(TokenType.EndOfFile, t.Type);
+        }
+
+        [Test]
         public void TokenStringify()
         {
             var st = new Token(TokenType.Identifier, new Location { Filename = "bar", LineNumber = 123 }, "String");
