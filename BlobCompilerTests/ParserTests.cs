@@ -85,14 +85,6 @@ namespace BlobCompilerTests
         }
 
         [Test]
-        public void BadArrayBounds()
-        {
-            AddFile("foo", " struct Foo { u32[-123] a; }");
-            var ex = Assert.Throws<ParseException>(() => Parse("foo"));
-            Assert.IsTrue(ex.Message.Contains("must be positive"));
-        }
-
-        [Test]
         public void MissingIncludeFile()
         {
             AddFile("foo", "include \"bar\"");
@@ -274,66 +266,12 @@ namespace BlobCompilerTests
         }
 
         [Test]
-        public void TestArrayNegativeBounds()
-        {
-            AddFile("foo", "struct Foo { Bar[-9] A; }");
-
-            var ex = Assert.Throws<ParseException>(() =>Parse("foo"));
-            Assert.IsTrue(ex.Message.Contains("must be positive"));
-        }
-
-        [Test]
         public void TestNoPointersToArrays()
         {
             AddFile("foo", "struct Foo { Bar[1]* A; }");
 
             var ex = Assert.Throws<ParseException>(() =>Parse("foo"));
             Assert.IsTrue(ex.Message.Contains("pointer to array type"));
-        }
-
-        [Test]
-        public void TestArrayType()
-        {
-            AddFile("foo", "struct Foo { Bar[7] A; }");
-
-            var result = Parse("foo");
-            Assert.AreEqual(1, result.Structs.Count);
-
-            var sfoo = result.Structs[0];
-            Assert.AreEqual(1, sfoo.Fields.Count);
-
-            Assert.AreEqual("A", sfoo.Fields[0].Name);
-
-            var p1 = sfoo.Fields[0].Type as ArrayType;
-            Assert.IsTrue(p1 != null);
-            Assert.AreEqual("foo", p1.Location.Filename);
-            Assert.AreEqual(1, p1.Location.LineNumber);
-            Assert.AreEqual(7, p1.Length);
-            var elementType = p1.ElementType as StructType;
-            Assert.IsTrue(elementType != null);
-            Assert.AreEqual("Bar", elementType.Name);
-            Assert.IsFalse(elementType.IsResolved);
-        }
-
-        [Test]
-        public void TestArrayOfPointersType()
-        {
-            AddFile("foo", "struct Foo { u32*[128] A; }");
-
-            var result = Parse("foo");
-            Assert.AreEqual(1, result.Structs.Count);
-
-            var sfoo = result.Structs[0];
-            Assert.AreEqual(1, sfoo.Fields.Count);
-
-            Assert.AreEqual("A", sfoo.Fields[0].Name);
-
-            var p1 = sfoo.Fields[0].Type as ArrayType;
-            Assert.IsTrue(p1 != null);
-            Assert.AreEqual(128, p1.Length);
-            var elementType = p1.ElementType as PointerType;
-            Assert.IsTrue(elementType != null);
-            Assert.AreSame(PrimitiveType.U32, elementType.PointeeType);
         }
 
         [Test]

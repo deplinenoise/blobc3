@@ -25,8 +25,8 @@ namespace BlobCompiler
 
         public static void Resolve(ParseResult result)
         {
-            ResolveStructs(result);
             ResolveConstants(result);
+            ResolveStructs(result);
         }
 
         private static void ResolveConstants(ParseResult result)
@@ -45,12 +45,26 @@ namespace BlobCompiler
             var stack = new HashSet<Expression>();
             foreach (var constant in result.Constants)
             {
-                result.ResolvedConstants.Add(new ResolvedConstant
+                var rc = new ResolvedConstant
                 {
                     Definition = constant,
                     Value = constant.Expression.Eval(lookup, stack),
-                });
+                };
+
+                result.ResolvedConstants.Add(rc);
             }
+
+            foreach (var pending in result.PendingArrayBoundExpressions)
+            {
+                long val = pending.Expression.Eval(lookup, stack);
+                if (val <= 0)
+                {
+                    throw new TypeCheckException(pending.Expression.Location, $"array bounds must be positive; got {val}");
+                }
+                pending.TargetType.Length = val;
+            }
+
+            result.PendingArrayBoundExpressions = null;
         }
 
         private static void ResolveStructs(ParseResult result)

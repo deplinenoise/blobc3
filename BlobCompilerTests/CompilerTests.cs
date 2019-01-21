@@ -301,5 +301,74 @@ namespace BlobCompilerTests
             var ex = Assert.Throws<TypeCheckException>(() => Compiler.Resolve(result));
             Assert.IsTrue(ex.Message.Contains("already defined"));
         }
+
+        [Test]
+        public void ConstantInArrayBounds()
+        {
+            AddFile("a", "const a = 3; const b = 2; struct c { u32[a * 2 + b] Array; }");
+            var result = Parse("a");
+            Compiler.Resolve(result);
+            var f0 = result.Structs[0].Fields[0].Type as ArrayType;
+            Assert.AreEqual(8, f0.Length);
+        }
+
+        [Test]
+        public void BadArrayBounds()
+        {
+            AddFile("foo", " struct Foo { u32[-123] a; }");
+            var result = Parse("foo");
+            var ex = Assert.Throws<TypeCheckException>(() => Compiler.Resolve(result));
+            Assert.IsTrue(ex.Message.Contains("must be positive"));
+        }
+
+        [Test]
+        public void TestArrayType()
+        {
+            AddFile("foo", "struct Bar { u32 Wat; } struct Foo { Bar[7] A; }");
+
+            var result = Parse("foo");
+            Compiler.Resolve(result);
+            Assert.AreEqual(2, result.Structs.Count);
+
+            var sfoo = result.Structs[1];
+            Assert.AreEqual(1, sfoo.Fields.Count);
+
+            Assert.AreEqual("A", sfoo.Fields[0].Name);
+
+            var p1 = sfoo.Fields[0].Type as ArrayType;
+            Assert.IsTrue(p1 != null);
+            Assert.AreEqual("foo", p1.Location.Filename);
+            Assert.AreEqual(1, p1.Location.LineNumber);
+            Assert.AreEqual(7, p1.Length);
+            var elementType = p1.ElementType as StructType;
+            Assert.IsTrue(elementType != null);
+            Assert.AreEqual("Bar", elementType.Name);
+            Assert.IsTrue(elementType.IsResolved);
+        }
+
+
+        [Test]
+        public void TestArrayOfPointersType()
+        {
+            AddFile("foo", "struct Foo { u32*[128] A; }");
+
+            var result = Parse("foo");
+            Compiler.Resolve(result);
+
+            Assert.AreEqual(1, result.Structs.Count);
+
+            var sfoo = result.Structs[0];
+            Assert.AreEqual(1, sfoo.Fields.Count);
+
+            Assert.AreEqual("A", sfoo.Fields[0].Name);
+
+            var p1 = sfoo.Fields[0].Type as ArrayType;
+            Assert.IsTrue(p1 != null);
+            Assert.AreEqual(128, p1.Length);
+            var elementType = p1.ElementType as PointerType;
+            Assert.IsTrue(elementType != null);
+            Assert.AreSame(PrimitiveType.U32, elementType.PointeeType);
+        }
+
     }
 }

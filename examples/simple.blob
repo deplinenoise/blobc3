@@ -7,6 +7,7 @@ struct Foo {
     u32[8] b;
     i32*[8] c;
     u8**[8] d;
+    u16[FOO_BAR * 3] q;
     Bar* e;
     Bar** f;
 	void* some_ptr;

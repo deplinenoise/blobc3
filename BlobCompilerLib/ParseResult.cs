@@ -8,6 +8,12 @@ namespace BlobCompiler
         public long Value;
     }
 
+    public struct PendingArrayBounds
+    {
+        public Expression Expression;
+        public ArrayType TargetType;
+    }
+
     public class ParseResult
     {
         public string InputFilename { get; private set; }
@@ -16,6 +22,7 @@ namespace BlobCompiler
         public List<ConstDef> Constants { get; private set; }
         public List<FunctionType> FunctionTypes { get; private set; }
         public List<ResolvedConstant> ResolvedConstants { get; private set; }
+        internal List<PendingArrayBounds> PendingArrayBoundExpressions { get; set; }
 
         public ParseResult(string inputFilename)
         {
@@ -25,6 +32,7 @@ namespace BlobCompiler
             FunctionTypes = new List<FunctionType>();
             Constants = new List<ConstDef>();
             ResolvedConstants = new List<ResolvedConstant>();
+            PendingArrayBoundExpressions = new List<PendingArrayBounds>();
         }
     }
 
@@ -409,12 +417,12 @@ namespace BlobCompiler
 
         public TypeDef ElementType { get; private set; }
         public Location Location { get; private set; }
-        public long Length { get; private set; }
+        public long Length { get; internal set; }
 
-        public ArrayType(Location loc, long length, TypeDef elementType)
+        public ArrayType(Location loc, TypeDef elementType)
         {
             Location = loc;
-            Length = length;
+            Length = -1;
             ElementType = elementType;
         }
 

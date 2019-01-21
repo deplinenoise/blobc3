@@ -227,11 +227,10 @@ namespace BlobCompiler
 
                 if (Accept(TokenType.LeftBracket, out t))
                 {
-                    var bounds = Expect(TokenType.IntegerLiteral);
-                    if (bounds.IntValue < 0)
-                        throw MakeParseError(bounds, $"array bounds must be positive; got {bounds.IntValue}");
+                    var bounds = ParseExpression(1);
                     Expect(TokenType.RightBracket);
-                    type = new ArrayType(t.Location, bounds.IntValue, type);
+                    type = new ArrayType(t.Location, type);
+                    result.PendingArrayBoundExpressions.Add(new PendingArrayBounds { Expression = bounds, TargetType = (ArrayType) type });
                 }
                 else if (Accept(TokenType.Star, out t))
                 {
