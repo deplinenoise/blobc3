@@ -50,6 +50,7 @@ namespace BlobCompilerMain
         public List<string> IncludePaths = new List<string>();
         public string InputFile;
         public string OutputFile;
+        public string AsmIncludePrefix = "";
         public string CodeGenerator;
 
         public static readonly string[] kValidGenerators =
@@ -87,6 +88,10 @@ namespace BlobCompilerMain
                             break;
                         case 'g':
                             CodeGenerator = nextArg;
+                            ++i;
+                            break;
+                        case 'A':
+                            AsmIncludePrefix = nextArg;
                             ++i;
                             break;
                         default:
@@ -145,7 +150,7 @@ namespace BlobCompilerMain
                     switch (options.CodeGenerator)
                     {
                         case "asm68k":
-                            new AsmCodeGenerator().GenerateCode(parseResult, writer);
+                            new AsmCodeGenerator().GenerateCode(parseResult, writer, options.AsmIncludePrefix);
                             break;
                         case "cheader":
                             new CHeaderGenerator(parseResult).GenerateCode(writer);

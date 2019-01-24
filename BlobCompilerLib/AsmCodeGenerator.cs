@@ -9,14 +9,14 @@ namespace BlobCompiler
 {
     public class AsmCodeGenerator
     {
-        public void GenerateCode(ParseResult result, TextWriter writer)
+        public void GenerateCode(ParseResult result, TextWriter writer, string includePrefix)
         {
             writer.WriteLine("; This file was automatically generated. Do not edit it.");
 
             foreach (var include in result.Includes)
             {
                 var incstr = Path.GetFileNameWithoutExtension(include) + ".i";
-                writer.WriteLine("\t\tinclude\t\"{0}\"", incstr);
+                writer.WriteLine("\t\tinclude\t\"{0}{1}\"", includePrefix, incstr);
             }
 
             writer.WriteLine();

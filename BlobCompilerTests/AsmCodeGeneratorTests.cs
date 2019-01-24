@@ -17,14 +17,14 @@ namespace BlobCompilerTests
         protected static readonly Regex kTrailingWhitespace = new Regex(" $");
         protected static readonly Regex kComment = new Regex(";.*$");
 
-        protected List<string> ParseAndGenerate(string fn)
+        protected List<string> ParseAndGenerate(string fn, string includePrefix = "")
         {
             var result = Parse(fn);
             Compiler.Resolve(result);
             var generator = new AsmCodeGenerator();
             using (var writer = new StringWriter())
             {
-                generator.GenerateCode(result, writer);
+                generator.GenerateCode(result, writer, includePrefix);
                 var output = writer.ToString();
                 var lineList = new List<string>();
                 foreach (var line in output.Split('\n'))
@@ -98,6 +98,15 @@ namespace BlobCompilerTests
             Assert.Contains("Foo_F EQU 0", lines);
             Assert.Contains("Foo_Baz EQU 2", lines);
             Assert.AreEqual(0, lines.Count((e) => e.StartsWith("Bar_")));
+        }
+
+        [Test]
+        public void IncludePrefix()
+        {
+            AddFile("a", "include \"b\"\nstruct Foo { Bar F; u32 Baz; }");
+            AddFile("b", "struct Bar { u16 Baz; }");
+            var lines = ParseAndGenerate("a", "MY_PREFIX/");
+            Assert.Contains("include \"MY_PREFIX/b.i\"", lines);
         }
 
         [Test]
