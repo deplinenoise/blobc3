@@ -101,6 +101,15 @@ namespace BlobCompilerTests
         }
 
         [Test]
+        public void IncludesWithPath()
+        {
+            AddFile("a", "include \"foo/b\"\nstruct Foo { Bar F; u32 Baz; }");
+            AddFile("foo/b", "struct Bar { u16 Baz; }");
+            var lines = ParseAndGenerate("a");
+            Assert.Contains("include \"foo/b.i\"", lines);
+        }
+
+        [Test]
         public void IncludePrefix()
         {
             AddFile("a", "include \"b\"\nstruct Foo { Bar F; u32 Baz; }");

@@ -15,7 +15,15 @@ namespace BlobCompiler
 
             foreach (var include in result.Includes)
             {
-                var incstr = include + ".i";
+                var incstr = new StringBuilder();
+                var dir = Path.GetDirectoryName(include);
+                if (dir.Length != 0)
+                {
+                    incstr.Append(dir);
+                    incstr.Append(Path.DirectorySeparatorChar);
+                }
+                incstr.Append(Path.GetFileNameWithoutExtension(include));
+                incstr.Append(".i");
                 writer.WriteLine("\t\tinclude\t\"{0}{1}\"", includePrefix, incstr);
             }
 
