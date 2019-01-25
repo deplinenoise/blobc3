@@ -15,7 +15,7 @@ namespace BlobCompiler
 
             foreach (var include in result.Includes)
             {
-                var incstr = Path.GetFileNameWithoutExtension(include) + ".i";
+                var incstr = include + ".i";
                 writer.WriteLine("\t\tinclude\t\"{0}{1}\"", includePrefix, incstr);
             }
 
